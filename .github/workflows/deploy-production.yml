@@ -2,7 +2,7 @@ name: Deploy to Production
 
 on:
   push:
-    branches: [main, master]
+    branches: [production]
   workflow_dispatch:
 
 permissions:
@@ -10,9 +10,47 @@ permissions:
   deployments: write
 
 jobs:
-  deploy-production:
-    name: Deploy to Production Environment
+  test-and-security:
+    name: Tests & Security Scans (Strict)
     runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter (strict - no errors allowed)
+        run: npm run lint
+      
+      - name: Type check (strict - no errors allowed)
+        run: npx tsc --noEmit
+      
+      - name: Security audit (strict - no vulnerabilities allowed)
+        run: npm audit --audit-level=moderate
+      
+      - name: Check for hardcoded secrets
+        run: |
+          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
+            echo "❌ Hardcoded passwords found!"
+            exit 1
+          fi
+          if grep -r "api[_-]key\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
+            echo "❌ Hardcoded API keys found!"
+            exit 1
+          fi
+          echo "✅ No hardcoded secrets found"
+
+  build-and-deploy-production:
+    name: Build & Deploy to Production
+    runs-on: ubuntu-latest
+    needs: test-and-security
     environment:
       name: production
       url: https://edge-esg.vercel.app
@@ -28,15 +66,6 @@ jobs:
       
       - name: Install dependencies
         run: npm ci
-      
-      - name: Run linter
-        run: npm run lint
-      
-      - name: Type check
-        run: npx tsc --noEmit
-      
-      - name: Run security audit (strict)
-        run: npm audit --audit-level=moderate
       
       - name: Build for production
         run: npm run build
@@ -61,6 +90,12 @@ jobs:
           # Add your smoke tests here
           echo "✅ Smoke tests passed"
       
+      - name: Check build output
+        run: |
+          echo "📦 Production build completed successfully"
+          du -sh .next
+          echo "✅ Ready for production deployment"
+      
       - name: Deployment summary
         run: |
           echo "## 🚀 Production Deployment Summary" >> $GITHUB_STEP_SUMMARY
@@ -72,14 +107,17 @@ jobs:
           echo "📅 **Date**: $(date)" >> $GITHUB_STEP_SUMMARY
           echo "👥 **For**: 10 Companies" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "### ⚠️ Post-Deployment Checklist:" >> $GITHUB_STEP_SUMMARY
+          echo "### ⚠️ CRITICAL Post-Deployment Checklist:" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Verify Vercel production deployment" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Test login with Keycloak" >> $GITHUB_STEP_SUMMARY
           echo "- [ ] Verify backend connection" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Test company analysis" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Check WebSocket updates" >> $GITHUB_STEP_SUMMARY
-          echo "- [ ] Monitor error logs" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Test company analysis end-to-end" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Check WebSocket real-time updates" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Monitor error logs for 1 hour" >> $GITHUB_STEP_SUMMARY
+          echo "- [ ] Notify 10 companies of deployment" >> $GITHUB_STEP_SUMMARY
       
       - name: Notify deployment
         run: |
           echo "🎉 Production deployment complete!"
           echo "URL: https://edge-esg.vercel.app"
+          echo "⚠️ Monitor closely for the next hour"
