@@ -38,7 +38,7 @@ export default function Home() {
     
     initBackend();
 
-    // Initialize WebSocket connection
+    // Initialize WebSocket connection (optional feature)
     const ws = new WebSocketClient(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws');
     ws.connect(
       (data) => {
@@ -59,7 +59,8 @@ export default function Home() {
         }
       },
       () => {
-        setBackendStatus('disconnected');
+        // WebSocket failed, but REST API might still work
+        // Don't change backend status here
       }
     );
 
