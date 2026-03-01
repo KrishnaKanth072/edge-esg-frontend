@@ -15,11 +15,13 @@ export async function analyzeCompany(company: string) {
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.details || `API error: ${response.status}`;
+      throw new Error(errorMessage);
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to analyze company:', error);
     throw error;
   }
@@ -49,11 +51,13 @@ export async function analyzePortfolio(companies: string[], riskTolerance: numbe
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorData = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.details || `API error: ${response.status}`;
+      throw new Error(errorMessage);
     }
 
     return await response.json();
-  } catch (error) {
+  } catch (error: any) {
     console.error('Failed to analyze portfolio:', error);
     throw error;
   }

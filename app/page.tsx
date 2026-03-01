@@ -116,69 +116,15 @@ export default function Home() {
         setAgentStates(agents.map(a => ({ ...a, status: 'complete', progress: 100 })));
         setState('results');
 
-      } catch (error) {
+      } catch (error: any) {
         console.error('Analysis failed:', error);
-        alert('Failed to analyze. Please try again.');
+        const errorMessage = error.message || 'Failed to analyze. Please try again.';
+        alert(errorMessage);
         setState('input');
+        setAgentStates(agents.map(a => ({ ...a, status: 'idle', progress: 0 })));
+      }
       }
     }
-
-  const simulateAnalysis = () => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      
-      setAgentStates(prev => prev.map((agent, idx) => {
-        if (progress > idx * 10) {
-          return {
-            ...agent,
-            status: progress >= 100 ? 'complete' : 'analyzing',
-            progress: Math.min(progress - idx * 10, 100)
-          };
-        }
-        return agent;
-      }));
-
-      setConsensus(prev => Math.min(prev + 1.2, 94));
-      setQuantumProgress(prev => Math.min(prev + 12.5, 100));
-
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setResults({
-            company,
-            esgScore: {
-              overall: 4.2,
-              environmental: 3.8,
-              social: 4.5,
-              governance: 4.3
-            },
-            tradingSignal: {
-              action: 'BUY',
-              symbol: 'SUZLON.NS',
-              currentPrice: 285,
-              targetPrice: 312,
-              confidence: 85,
-              expectedReturn: 18
-            },
-            riskAssessment: {
-              level: 'HIGH',
-              action: 'REJECT',
-              factors: ['High debt ratio', 'Regulatory concerns', 'Market volatility']
-            },
-            auditTrail: {
-              transactionHash: '0xabc123def456...',
-              blockchain: 'Polygon',
-              timestamp: new Date().toISOString(),
-              verified: true
-            },
-            consensus: 94
-          });
-          setState('results');
-        }, 1000);
-      }
-    }, 800);
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">

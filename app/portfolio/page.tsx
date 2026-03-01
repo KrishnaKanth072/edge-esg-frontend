@@ -7,7 +7,26 @@ export default function PortfolioPage() {
   const [companies, setCompanies] = useState<string[]>(['', '']);
   const [riskTolerance, setRiskTolerance] = useState(0.5);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<{
+    companies?: Array<{
+      company_name: string;
+      esg_score: number;
+      environmental: number;
+      social: number;
+      governance: number;
+      risk_level: string;
+      trading_signal: {
+        action: string;
+        price_change: string;
+      };
+    }>;
+    best_esg_company?: string;
+    lowest_risk_company?: string;
+    portfolio_esg_score?: number;
+    expected_return?: number;
+    optimal_allocation?: number[];
+    processing_time_ms?: number;
+  } | null>(null);
   const [error, setError] = useState('');
 
   const addCompany = () => {
@@ -43,8 +62,9 @@ export default function PortfolioPage() {
     try {
       const data = await analyzePortfolio(validCompanies, riskTolerance);
       setResult(data);
-    } catch (err: any) {
-      setError(err.message || 'Failed to analyze portfolio');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : 'Failed to analyze portfolio';
+      setError(errorMessage);
     } finally {
       setLoading(false);
     }
@@ -164,7 +184,7 @@ export default function PortfolioPage() {
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-gray-200">
-                      {result.companies?.map((company: any, index: number) => (
+                      {result.companies?.map((company, index: number) => (
                         <tr key={index} className="hover:bg-gray-50">
                           <td className="px-4 py-4 font-medium">{company.company_name}</td>
                           <td className="px-4 py-4">
