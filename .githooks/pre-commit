@@ -1,0 +1,40 @@
+#!/bin/bash
+
+echo "🔍 Running pre-commit security checks..."
+
+# Get staged files
+STAGED_FILES=$(git diff --cached --name-only --diff-filter=ACM | grep -E '\.(ts|tsx|js|jsx)$')
+
+if [ -z "$STAGED_FILES" ]; then
+    echo "✅ No TypeScript/JavaScript files to check"
+    exit 0
+fi
+
+# Check for hardcoded passwords
+if echo "$STAGED_FILES" | xargs grep -n "password\s*=\s*['\"]" 2>/dev/null; then
+    echo "❌ ERROR: Hardcoded passwords detected!"
+    echo "Please use environment variables (NEXT_PUBLIC_* or server-side env vars)"
+    exit 1
+fi
+
+# Check for API keys
+if echo "$STAGED_FILES" | xargs grep -nE "(api[_-]?key|apikey)\s*[:=]\s*['\"][a-zA-Z0-9]{20,}['\"]" 2>/dev/null; then
+    echo "❌ ERROR: Hardcoded API keys detected!"
+    echo "Use environment variables instead"
+    exit 1
+fi
+
+# Check for private keys
+if echo "$STAGED_FILES" | xargs grep -n "BEGIN.*PRIVATE KEY" 2>/dev/null; then
+    echo "❌ ERROR: Private key detected!"
+    exit 1
+fi
+
+# Check for AWS credentials
+if echo "$STAGED_FILES" | xargs grep -nE "(aws_access_key_id|aws_secret_access_key)\s*=\s*['\"]" 2>/dev/null; then
+    echo "❌ ERROR: AWS credentials detected!"
+    exit 1
+fi
+
+echo "✅ Security checks passed"
+exit 0
