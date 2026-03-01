@@ -34,3 +34,27 @@ export async function getHealthStatus() {
     return null;
   }
 }
+
+export async function analyzePortfolio(companies: string[], riskTolerance: number = 0.5) {
+  try {
+    const response = await fetch(`${API_URL}/api/v1/portfolio/compare`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        companies: companies,
+        risk_tolerance: riskTolerance
+      }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`API error: ${response.status}`);
+    }
+
+    return await response.json();
+  } catch (error) {
+    console.error('Failed to analyze portfolio:', error);
+    throw error;
+  }
+}
