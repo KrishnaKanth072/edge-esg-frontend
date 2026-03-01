@@ -6,6 +6,7 @@ import AgentAvatar from '@/components/AgentAvatar';
 import QuantumGlobe from '@/components/QuantumGlobe';
 import GlassCard from '@/components/GlassCard';
 import PortfolioComparison from '@/components/PortfolioComparison';
+import InvestmentCalculator from '@/components/InvestmentCalculator';
 import { agents } from '@/lib/agents';
 import { Agent, AnalysisResult } from '@/lib/types';
 import { analyzeCompany, getHealthStatus } from '@/lib/api';
@@ -344,6 +345,18 @@ export default function Home() {
                 </div>
               </GlassCard>
             </div>
+
+            {/* Investment Calculator */}
+            {results.tradingSignal && (
+              <div className="mt-8">
+                <InvestmentCalculator
+                  currentPrice={results.tradingSignal.currentPrice}
+                  symbol={results.tradingSignal.symbol}
+                  projections={(results as any).investment_projections || []}
+                  historicalReturns={(results as any).historical_returns}
+                />
+              </div>
+            )}
 
             <div className="text-center mt-8">
               <motion.button
