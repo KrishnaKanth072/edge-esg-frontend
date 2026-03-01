@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AgentAvatar from '@/components/AgentAvatar';
 import QuantumGlobe from '@/components/QuantumGlobe';
 import GlassCard from '@/components/GlassCard';
+import PortfolioComparison from '@/components/PortfolioComparison';
 import { agents } from '@/lib/agents';
 import { Agent, AnalysisResult } from '@/lib/types';
 import { analyzeCompany, getHealthStatus } from '@/lib/api';
@@ -18,6 +19,7 @@ export default function Home() {
   const [agentStates, setAgentStates] = useState<Agent[]>(agents);
   const [consensus, setConsensus] = useState(0);
   const [quantumProgress, setQuantumProgress] = useState(0);
+  const [showPortfolio, setShowPortfolio] = useState(false);
   const [results, setResults] = useState<AnalysisResult | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
 
@@ -176,14 +178,25 @@ export default function Home() {
                 className="w-full px-6 py-4 rounded-xl glass text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-blue-500 mb-6"
               />
               
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleAnalyze}
-                className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all"
-              >
-                🚀 Analyze ESG + Trading Alpha
-              </motion.button>
+              <div className="space-y-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleAnalyze}
+                  className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all"
+                >
+                  🚀 Analyze ESG + Trading Alpha
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowPortfolio(true)}
+                  className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold text-lg hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                >
+                  📊 Compare Portfolio (2-10 Companies)
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -349,6 +362,10 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {showPortfolio && (
+        <PortfolioComparison onClose={() => setShowPortfolio(false)} />
+      )}
     </div>
   );
 }
