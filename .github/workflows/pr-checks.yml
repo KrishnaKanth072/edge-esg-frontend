@@ -95,15 +95,22 @@ jobs:
       
       - name: Check for hardcoded secrets in source code
         run: |
-          # Only check source files, exclude node_modules, .next, and build artifacts
-          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out --exclude-dir=dist src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then
+          # Only check source files that exist, exclude node_modules, .next, and build artifacts
+          FOUND_ISSUES=false
+          
+          # Check for hardcoded passwords
+          if find app components lib environments -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" \) 2>/dev/null | xargs grep -l "password\s*=\s*['\"]" 2>/dev/null; then
             echo "❌ Hardcoded passwords found in source code!"
-            exit 1
+            FOUND_ISSUES=true
           fi
           
           # Check for API keys
-          if grep -rE "(api[_-]?key|apikey)\s*[:=]\s*['\"][a-zA-Z0-9]{20,}['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules --exclude-dir=.next src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then
+          if find app components lib environments -type f \( -name "*.ts" -o -name "*.tsx" -o -name "*.js" \) 2>/dev/null | xargs grep -lE "(api[_-]?key|apikey)\s*[:=]\s*['\"][a-zA-Z0-9]{20,}['\"]" 2>/dev/null; then
             echo "❌ Hardcoded API keys found in source code!"
+            FOUND_ISSUES=true
+          fi
+          
+          if [ "$FOUND_ISSUES" = true ]; then
             exit 1
           fi
           
