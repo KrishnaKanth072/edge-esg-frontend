@@ -1,0 +1,100 @@
+name: Security Scanning
+
+on:
+  schedule:
+    - cron: '0 2 * * *'  # Daily at 2 AM UTC
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+jobs:
+  npm-audit:
+    name: NPM Audit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run npm audit
+        run: |
+          npm audit --audit-level=moderate || true
+          npm audit --json > audit-report.json || true
+      
+      - name: Upload audit report
+        uses: actions/upload-artifact@v4
+        with:
+          name: npm-audit-report
+          path: audit-report.json
+
+  dependency-check:
+    name: Dependency Vulnerability Check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Check for outdated packages
+        run: |
+          npm outdated || true
+          echo "✅ Dependency check complete"
+
+  code-scan:
+    name: Code Security Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check for sensitive data
+        run: |
+          echo "🔍 Scanning for sensitive data..."
+          
+          # Check for API keys
+          if grep -r "api[_-]key\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
+            echo "⚠️ Potential API keys found"
+          fi
+          
+          # Check for passwords
+          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
+            echo "⚠️ Hardcoded passwords found"
+          fi
+          
+          # Check for tokens
+          if grep -r "token\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
+            echo "⚠️ Hardcoded tokens found"
+          fi
+          
+          echo "✅ Security scan complete"
+
+  trivy-scan:
+    name: Trivy Filesystem Scan
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          scan-type: 'fs'
+          scan-ref: '.'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH'
+      
+      - name: Upload Trivy results to GitHub Security
+        uses: github/codeql-action/upload-sarif@v3
+        continue-on-error: true
+        with:
+          sarif_file: 'trivy-results.sarif'

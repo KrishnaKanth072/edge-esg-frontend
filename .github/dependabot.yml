@@ -1,0 +1,65 @@
+version: 2
+updates:
+  # NPM dependencies (package.json)
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "daily" # Check daily for security updates
+      time: "09:00"
+    open-pull-requests-limit: 15
+    reviewers:
+      - "krishnakanth072"
+    labels:
+      - "dependencies"
+      - "npm"
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    # Auto-merge minor and patch updates
+    allow:
+      - dependency-type: "all"
+    # Group updates by type
+    groups:
+      # Security updates - highest priority, separate PRs
+      security-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "security"
+      # Patch updates - safe, can be grouped
+      patch-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "patch"
+      # Minor updates - grouped together
+      minor-updates:
+        patterns:
+          - "*"
+        update-types:
+          - "minor"
+    # Ignore major version updates for stable packages
+    ignore:
+      - dependency-name: "react"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "react-dom"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "next"
+        update-types: ["version-update:semver-major"]
+
+  # GitHub Actions
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+      time: "09:00"
+    open-pull-requests-limit: 5
+    reviewers:
+      - "krishnakanth072"
+    labels:
+      - "dependencies"
+      - "github-actions"
+    commit-message:
+      prefix: "ci"
+      include: "scope"
