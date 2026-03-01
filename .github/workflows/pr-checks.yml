@@ -2,7 +2,9 @@ name: Pull Request Checks
 
 on:
   pull_request:
-    branches: [main, master]
+    branches: [main, master, staging, develop, dev]
+  push:
+    branches: [main, master, staging, develop, dev]
 
 jobs:
   lint:

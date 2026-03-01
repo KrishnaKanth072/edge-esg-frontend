@@ -1,0 +1,41 @@
+name: On Push Quality Checks
+
+on:
+  push:
+    branches: ['**']  # Run on ALL branches
+
+jobs:
+  quick-checks:
+    name: Quick Quality Checks
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run ESLint (fail on errors)
+        run: npm run lint
+      
+      - name: TypeScript type check (fail on errors)
+        run: npx tsc --noEmit
+      
+      - name: Check for console.log statements
+        run: |
+          if grep -r "console\.log" --include="*.ts" --include="*.tsx" app/ components/ lib/ 2>/dev/null; then
+            echo "⚠️ Warning: console.log statements found (should be removed for production)"
+          fi
+      
+      - name: Summary
+        if: success()
+        run: |
+          echo "✅ All quality checks passed!"
+          echo "Branch: ${{ github.ref_name }}"
+          echo "Commit: ${{ github.sha }}"
