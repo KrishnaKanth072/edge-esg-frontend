@@ -223,10 +223,10 @@ export default function PortfolioPage() {
                               <div className="flex-1 bg-gray-200 rounded-full h-2">
                                 <div 
                                   className="bg-green-500 h-2 rounded-full"
-                                  style={{ width: `${(result.optimal_allocation[index] * 100).toFixed(0)}%` }}
+                                  style={{ width: `${((result.optimal_allocation?.[index] ?? 0) * 100).toFixed(0)}%` }}
                                 ></div>
                               </div>
-                              <span className="text-sm font-semibold">{(result.optimal_allocation[index] * 100).toFixed(1)}%</span>
+                              <span className="text-sm font-semibold">{((result.optimal_allocation?.[index] ?? 0) * 100).toFixed(1)}%</span>
                             </div>
                           </td>
                         </tr>
