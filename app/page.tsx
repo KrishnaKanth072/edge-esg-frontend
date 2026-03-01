@@ -116,13 +116,12 @@ export default function Home() {
         setAgentStates(agents.map(a => ({ ...a, status: 'complete', progress: 100 })));
         setState('results');
 
-      } catch (error: any) {
+      } catch (error: unknown) {
         console.error('Analysis failed:', error);
-        const errorMessage = error.message || 'Failed to analyze. Please try again.';
+        const errorMessage = error instanceof Error ? error.message : 'Failed to analyze. Please try again.';
         alert(errorMessage);
         setState('input');
         setAgentStates(agents.map(a => ({ ...a, status: 'idle', progress: 0 })));
-      }
       }
     }
 
