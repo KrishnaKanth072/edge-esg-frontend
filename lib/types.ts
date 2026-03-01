@@ -43,3 +43,28 @@ export interface AnalysisResult {
   auditTrail: AuditTrail;
   consensus: number;
 }
+
+// WebSocket message types
+export interface WSAgentUpdate {
+  type: 'agent_update';
+  agentId: string;
+  status: 'idle' | 'analyzing' | 'complete';
+  progress: number;
+}
+
+export interface WSConsensusUpdate {
+  type: 'consensus_update';
+  consensus: number;
+}
+
+export interface WSQuantumUpdate {
+  type: 'quantum_update';
+  progress: number;
+}
+
+export interface WSAnalysisComplete {
+  type: 'analysis_complete';
+  results: AnalysisResult;
+}
+
+export type WSMessage = WSAgentUpdate | WSConsensusUpdate | WSQuantumUpdate | WSAnalysisComplete;
