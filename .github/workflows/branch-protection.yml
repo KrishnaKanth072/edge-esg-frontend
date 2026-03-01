@@ -1,0 +1,93 @@
+name: Branch Protection Checks
+
+on:
+  pull_request:
+    branches: [main, staging, dev]
+  push:
+    branches: [main, staging, dev]
+
+jobs:
+  check-branch-rules:
+    name: Verify Branch Rules
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Check if pushing to protected branch
+        if: github.event_name == 'push'
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          ACTOR="${GITHUB_ACTOR}"
+          
+          echo "🔍 Checking push to branch: $BRANCH"
+          echo "👤 Pushed by: $ACTOR"
+          
+          # Only admin can push directly to protected branches
+          if [[ "$BRANCH" == "main" || "$BRANCH" == "staging" || "$BRANCH" == "dev" ]]; then
+            if [[ "$ACTOR" != "krishnakanth072" && "$ACTOR" != "KrishnaKanth072" ]]; then
+              echo "❌ ERROR: Only @krishnakanth072 can push directly to $BRANCH"
+              echo "Please create a pull request instead."
+              exit 1
+            else
+              echo "✅ Admin push to $BRANCH - allowed"
+            fi
+          fi
+      
+      - name: Check PR target branch
+        if: github.event_name == 'pull_request'
+        run: |
+          TARGET="${{ github.base_ref }}"
+          SOURCE="${{ github.head_ref }}"
+          
+          echo "🔍 PR: $SOURCE → $TARGET"
+          
+          # Validate branch flow
+          if [[ "$TARGET" == "main" ]]; then
+            if [[ "$SOURCE" != "staging" ]]; then
+              echo "⚠️ WARNING: PRs to main should come from staging"
+              echo "Current: $SOURCE → main"
+              echo "Expected: staging → main"
+            else
+              echo "✅ Correct flow: staging → main"
+            fi
+          elif [[ "$TARGET" == "staging" ]]; then
+            if [[ "$SOURCE" != "dev" ]]; then
+              echo "⚠️ WARNING: PRs to staging should come from dev"
+              echo "Current: $SOURCE → staging"
+              echo "Expected: dev → staging"
+            else
+              echo "✅ Correct flow: dev → staging"
+            fi
+          fi
+      
+      - name: Branch protection summary
+        run: |
+          echo "## 🛡️ Branch Protection Status" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Protected Branches:" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔒 **main** (Production)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔒 **staging** (Pre-Production)" >> $GITHUB_STEP_SUMMARY
+          echo "- 🔒 **dev** (Development)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Rules:" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ Cannot delete protected branches" >> $GITHUB_STEP_SUMMARY
+          echo "- ❌ Cannot force push" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Requires PR approval from @krishnakanth072" >> $GITHUB_STEP_SUMMARY
+          echo "- ✅ Requires status checks to pass" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### Recommended Flow:" >> $GITHUB_STEP_SUMMARY
+          echo "feature → dev → staging → main" >> $GITHUB_STEP_SUMMARY
+
+  prevent-branch-deletion:
+    name: Prevent Protected Branch Deletion
+    runs-on: ubuntu-latest
+    if: github.event_name == 'delete'
+    steps:
+      - name: Check deleted branch
+        run: |
+          BRANCH="${GITHUB_REF#refs/heads/}"
+          
+          if [[ "$BRANCH" == "main" || "$BRANCH" == "staging" || "$BRANCH" == "dev" ]]; then
+            echo "❌ ERROR: Cannot delete protected branch: $BRANCH"
+            exit 1
+          fi
