@@ -15,7 +15,7 @@ export async function analyzeCompany(company: string) {
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: '', details: '' }));
+      const errorData: { message?: string; details?: string } = await response.json().catch(() => ({}));
       const errorMessage = errorData.message || errorData.details || `API error: ${response.status}`;
       throw new Error(errorMessage);
     }
@@ -54,7 +54,7 @@ export async function analyzePortfolio(companies: string[], riskTolerance: numbe
     });
 
     if (!response.ok) {
-      const errorData = await response.json().catch(() => ({ message: '', details: '' }));
+      const errorData: { message?: string; details?: string } = await response.json().catch(() => ({}));
       const errorMessage = errorData.message || errorData.details || `API error: ${response.status}`;
       throw new Error(errorMessage);
     }
