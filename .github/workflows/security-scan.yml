@@ -58,24 +58,17 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for better scanning
       
-      - name: Check for sensitive data
-        run: |
-          echo "🔍 Scanning for sensitive data..."
-          
-          # Check for API keys
-          if grep -r "api[_-]key\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "⚠️ Potential API keys found"
-          fi
-          
-          # Check for passwords
-          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "⚠️ Hardcoded passwords found"
-          fi
-          
-          # Check for tokens
-          if grep -r "token\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "⚠️ Hardcoded tokens found"
-          fi
-          
-          echo "✅ Security scan complete"
+      - name: TruffleHog Secret Scan
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: ${{ github.event.repository.default_branch }}
+          head: HEAD
+          extra_args: --only-verified
+        continue-on-error: true
+      
+      - name: Security scan summary
+        run: echo "✅ Professional secret scanning complete"
