@@ -113,7 +113,9 @@ export default function Home() {
             timestamp: result.timestamp || new Date().toISOString(),
             verified: true
           },
-          consensus: Math.round(result.trading_signal.confidence * 100)
+          consensus: Math.round(result.trading_signal.confidence * 100),
+          investment_projections: result.investment_projections || [],
+          historical_returns: result.historical_returns || []
         });
 
         setAgentStates(agents.map(a => ({ ...a, status: 'complete', progress: 100 })));
