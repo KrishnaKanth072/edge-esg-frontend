@@ -8,9 +8,9 @@
     "start": "next start",
     "lint": "eslint",
     "test:backend": "node test-backend-connection.js",
-    "security:check": "bash -c 'if grep -r \"password\\s*=\\s*[\\x27\\\"]\" --include=\"*.ts\" --include=\"*.tsx\" --include=\"*.js\" --exclude-dir=node_modules --exclude-dir=.next src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then echo \"❌ Hardcoded passwords found!\"; exit 1; fi && echo \"✅ Security check passed\"'",
+    "security:check": "powershell -ExecutionPolicy Bypass -File scripts/security-check.ps1",
     "security:audit": "npm audit --audit-level=high",
-    "setup": "git config core.hooksPath .githooks && chmod +x .githooks/pre-commit && echo '✅ Git hooks installed'"
+    "setup": "git config core.hooksPath .githooks && echo Git hooks installed"
   },
   "dependencies": {
     "framer-motion": "^12.34.3",
