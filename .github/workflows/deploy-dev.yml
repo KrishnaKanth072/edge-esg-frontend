@@ -1,0 +1,71 @@
+name: Deploy to Dev Environment
+
+on:
+  push:
+    branches: [dev, develop]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  deployments: write
+
+jobs:
+  test-and-build:
+    name: Test & Build for Dev
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+          cache: 'npm'
+      
+      - name: Install dependencies
+        run: npm ci
+      
+      - name: Run linter
+        run: npm run lint
+        continue-on-error: true
+      
+      - name: Type check
+        run: npx tsc --noEmit
+      
+      - name: Run security audit
+        run: npm audit --audit-level=high
+        continue-on-error: true
+      
+      - name: Build for development
+        run: npm run build
+        env:
+          NEXT_PUBLIC_API_URL: ${{ secrets.DEV_API_URL || 'http://localhost:8000' }}
+          NEXT_PUBLIC_WS_URL: ${{ secrets.DEV_WS_URL || 'ws://localhost:8000/ws' }}
+          NEXT_PUBLIC_KEYCLOAK_URL: ${{ secrets.DEV_KEYCLOAK_URL || 'http://localhost:8080' }}
+          NEXT_PUBLIC_KEYCLOAK_REALM: ${{ secrets.DEV_KEYCLOAK_REALM || 'edgeesg' }}
+          NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: ${{ secrets.DEV_KEYCLOAK_CLIENT_ID || 'edge-esg-frontend' }}
+          NEXT_PUBLIC_ENVIRONMENT: development
+          NEXT_PUBLIC_LOG_LEVEL: debug
+          NEXT_PUBLIC_ENABLE_DEMO_MODE: true
+      
+      - name: Check build output
+        run: |
+          echo "📦 Dev build completed successfully"
+          du -sh .next
+          echo "✅ Ready for deployment"
+      
+      - name: Deployment summary
+        run: |
+          echo "## 🚀 Dev Deployment Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "✅ **Build Status**: SUCCESS" >> $GITHUB_STEP_SUMMARY
+          echo "📦 **Bundle Size**: $(du -sh .next | cut -f1)" >> $GITHUB_STEP_SUMMARY
+          echo "🌐 **Environment**: Development" >> $GITHUB_STEP_SUMMARY
+          echo "🔗 **Branch**: ${{ github.ref_name }}" >> $GITHUB_STEP_SUMMARY
+          echo "📅 **Date**: $(date)" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📝 Notes:" >> $GITHUB_STEP_SUMMARY
+          echo "- Vercel will auto-deploy preview for this branch" >> $GITHUB_STEP_SUMMARY
+          echo "- Check Vercel dashboard for deployment URL" >> $GITHUB_STEP_SUMMARY
+          echo "- Demo mode enabled for testing" >> $GITHUB_STEP_SUMMARY
