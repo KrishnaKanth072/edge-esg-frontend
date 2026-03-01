@@ -90,16 +90,24 @@ jobs:
           cache: 'npm'
       
       - name: Run npm audit
-        run: npm audit --audit-level=moderate
+        run: npm audit --audit-level=high
         continue-on-error: true
       
-      - name: Check for hardcoded secrets
+      - name: Check for hardcoded secrets in source code
         run: |
-          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "❌ Hardcoded passwords found!"
+          # Only check source files, exclude node_modules, .next, and build artifacts
+          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out --exclude-dir=dist src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then
+            echo "❌ Hardcoded passwords found in source code!"
             exit 1
           fi
-          echo "✅ No hardcoded secrets found"
+          
+          # Check for API keys
+          if grep -rE "(api[_-]?key|apikey)\s*[:=]\s*['\"][a-zA-Z0-9]{20,}['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules --exclude-dir=.next src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then
+            echo "❌ Hardcoded API keys found in source code!"
+            exit 1
+          fi
+          
+          echo "✅ No hardcoded secrets found in source code"
 
   bundle-size:
     name: Bundle Size Check

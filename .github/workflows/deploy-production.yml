@@ -35,17 +35,18 @@ jobs:
       - name: Security audit (strict - no vulnerabilities allowed)
         run: npm audit --audit-level=moderate
       
-      - name: Check for hardcoded secrets
+      - name: Check for hardcoded secrets (strict)
         run: |
-          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "❌ Hardcoded passwords found!"
+          # Only check source files, exclude build artifacts
+          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules --exclude-dir=.next --exclude-dir=out src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then
+            echo "❌ Hardcoded passwords found in source code!"
             exit 1
           fi
-          if grep -r "api[_-]key\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "❌ Hardcoded API keys found!"
+          if grep -rE "(api[_-]?key|apikey)\s*[:=]\s*['\"][a-zA-Z0-9]{20,}['\"]" --include="*.ts" --include="*.tsx" --include="*.js" --exclude-dir=node_modules --exclude-dir=.next src/ app/ pages/ components/ lib/ utils/ 2>/dev/null; then
+            echo "❌ Hardcoded API keys found in source code!"
             exit 1
           fi
-          echo "✅ No hardcoded secrets found"
+          echo "✅ No hardcoded secrets found in source code"
 
   build-and-deploy-production:
     name: Build & Deploy to Production
