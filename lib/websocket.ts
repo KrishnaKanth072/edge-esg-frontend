@@ -1,3 +1,5 @@
+import { WSMessage } from './types';
+
 export class WebSocketClient {
   private ws: WebSocket | null = null;
   private url: string;
@@ -9,7 +11,7 @@ export class WebSocketClient {
     this.url = url;
   }
 
-  connect(onMessage: (data: any) => void, onError?: (error: Event) => void) {
+  connect(onMessage: (data: WSMessage) => void, onError?: (error: Event) => void) {
     try {
       this.ws = new WebSocket(this.url);
 
@@ -20,7 +22,7 @@ export class WebSocketClient {
 
       this.ws.onmessage = (event) => {
         try {
-          const data = JSON.parse(event.data);
+          const data = JSON.parse(event.data) as WSMessage;
           onMessage(data);
         } catch (error) {
           console.error('Failed to parse WebSocket message:', error);
@@ -41,7 +43,7 @@ export class WebSocketClient {
     }
   }
 
-  private reconnect(onMessage: (data: any) => void, onError?: (error: Event) => void) {
+  private reconnect(onMessage: (data: WSMessage) => void, onError?: (error: Event) => void) {
     if (this.reconnectAttempts < this.maxReconnectAttempts) {
       this.reconnectAttempts++;
       console.log(`Reconnecting... Attempt ${this.reconnectAttempts}`);
@@ -51,7 +53,7 @@ export class WebSocketClient {
     }
   }
 
-  send(data: any) {
+  send(data: Record<string, unknown>) {
     if (this.ws && this.ws.readyState === WebSocket.OPEN) {
       this.ws.send(JSON.stringify(data));
     } else {

@@ -20,11 +20,23 @@ export default function Home() {
   const [quantumProgress, setQuantumProgress] = useState(0);
   const [results, setResults] = useState<AnalysisResult | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
-  const [wsClient, setWsClient] = useState<WebSocketClient | null>(null);
 
   useEffect(() => {
     // Check backend health on mount
-    checkBackendHealth();
+    const initBackend = async () => {
+      try {
+        const health = await getHealthStatus();
+        if (health) {
+          setBackendStatus('connected');
+        } else {
+          setBackendStatus('disconnected');
+        }
+      } catch {
+        setBackendStatus('disconnected');
+      }
+    };
+    
+    initBackend();
 
     // Initialize WebSocket connection
     const ws = new WebSocketClient(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws');
@@ -46,30 +58,15 @@ export default function Home() {
           setState('results');
         }
       },
-      (error) => {
-        console.error('WebSocket error:', error);
+      () => {
         setBackendStatus('disconnected');
       }
     );
-    setWsClient(ws);
 
     return () => {
       ws.disconnect();
     };
   }, []);
-
-  const checkBackendHealth = async () => {
-    try {
-      const health = await getHealthStatus();
-      if (health) {
-        setBackendStatus('connected');
-      } else {
-        setBackendStatus('disconnected');
-      }
-    } catch (error) {
-      setBackendStatus('disconnected');
-    }
-  };
 
   const handleAnalyze = async () => {
     if (!company.trim()) return;
