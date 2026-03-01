@@ -8,11 +8,32 @@ interface PortfolioComparisonProps {
   onClose: () => void;
 }
 
+interface PortfolioResult {
+  companies?: Array<{
+    company_name: string;
+    esg_score: number;
+    environmental: number;
+    social: number;
+    governance: number;
+    risk_level: string;
+    trading_signal: {
+      action: string;
+      price_change: string;
+    };
+  }>;
+  best_esg_company?: string;
+  lowest_risk_company?: string;
+  portfolio_esg_score?: number;
+  expected_return?: number;
+  optimal_allocation?: number[];
+  processing_time_ms?: number;
+}
+
 export default function PortfolioComparison({ onClose }: PortfolioComparisonProps) {
   const [companies, setCompanies] = useState<string[]>(['', '', '']);
   const [riskTolerance, setRiskTolerance] = useState(0.5);
   const [loading, setLoading] = useState(false);
-  const [result, setResult] = useState<any>(null);
+  const [result, setResult] = useState<PortfolioResult | null>(null);
   const [error, setError] = useState('');
 
   const addCompany = () => {
@@ -200,7 +221,7 @@ export default function PortfolioComparison({ onClose }: PortfolioComparisonProp
                       </tr>
                     </thead>
                     <tbody className="divide-y-2 divide-gray-100">
-                      {result.companies?.map((company: any, index: number) => (
+                      {result.companies?.map((company, index: number) => (
                         <tr key={index} className="hover:bg-gray-50 transition-colors">
                           <td className="px-6 py-5 font-bold text-gray-800 text-lg">{company.company_name}</td>
                           <td className="px-6 py-5">
