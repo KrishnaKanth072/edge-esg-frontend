@@ -8,8 +8,9 @@ export async function analyzeCompany(company: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        company,
-        metrics: ['environmental', 'social', 'governance'],
+        company_name: company,
+        bank_id: '00000000-0000-0000-0000-000000000000',
+        mode: 'auto'
       }),
     });
 

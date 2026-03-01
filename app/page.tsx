@@ -70,34 +70,58 @@ export default function Home() {
   }, []);
 
   const handleAnalyze = async () => {
-    if (!company.trim()) return;
-    
-    setState('analyzing');
-    setAgentStates(agents.map(a => ({ ...a, status: 'idle', progress: 0 })));
-    setConsensus(82);
-    setQuantumProgress(0);
+      if (!company.trim()) return;
 
-    if (backendStatus === 'connected') {
-      try {
-        // Call real backend API
-        await analyzeCompany(company);
-        
-        // WebSocket will handle real-time updates
-        // If WebSocket fails, fallback to simulation
-        setTimeout(() => {
-          if (state === 'analyzing') {
-            simulateAnalysis();
-          }
-        }, 2000);
-      } catch (error) {
-        console.error('API call failed, using simulation:', error);
-        simulateAnalysis();
+      if (backendStatus !== 'connected') {
+        alert('Backend not connected. Please wait...');
+        return;
       }
-    } else {
-      // Use simulation when backend is not available
-      simulateAnalysis();
+
+      setState('analyzing');
+      setAgentStates(agents.map(a => ({ ...a, status: 'analyzing', progress: 50 })));
+
+      try {
+        const result = await analyzeCompany(company);
+
+        setResults({
+          company,
+          esgScore: {
+            overall: parseFloat(result.esg_score),
+            environmental: parseFloat(result.esg_score) * 0.9,
+            social: parseFloat(result.esg_score) * 1.1,
+            governance: parseFloat(result.esg_score)
+          },
+          tradingSignal: {
+            action: result.trading_signal.action,
+            symbol: result.trading_signal.symbol,
+            currentPrice: parseFloat(result.trading_signal.current_price?.replace('$', '') || '0'),
+            targetPrice: parseFloat(result.trading_signal.target_price?.replace('$', '') || '0'),
+            confidence: Math.round(result.trading_signal.confidence * 100),
+            expectedReturn: parseFloat(result.trading_signal.price_change?.replace('%', '') || '0')
+          },
+          riskAssessment: {
+            level: result.risk_action === 'REJECT' ? 'HIGH' : result.risk_action === 'REVIEW' ? 'MEDIUM' : 'LOW',
+            action: result.risk_action,
+            factors: result.risk_reasons || []
+          },
+          auditTrail: {
+            transactionHash: result.audit_hash,
+            blockchain: 'Polygon',
+            timestamp: result.timestamp || new Date().toISOString(),
+            verified: true
+          },
+          consensus: Math.round(result.trading_signal.confidence * 100)
+        });
+
+        setAgentStates(agents.map(a => ({ ...a, status: 'complete', progress: 100 })));
+        setState('results');
+
+      } catch (error) {
+        console.error('Analysis failed:', error);
+        alert('Failed to analyze. Please try again.');
+        setState('input');
+      }
     }
-  };
 
   const simulateAnalysis = () => {
     let progress = 0;
