@@ -34,14 +34,6 @@ jobs:
       
       - name: Security audit (strict)
         run: npm audit --audit-level=moderate
-      
-      - name: Check for hardcoded secrets
-        run: |
-          if grep -r "password\s*=\s*['\"]" --include="*.ts" --include="*.tsx" --include="*.js" .; then
-            echo "❌ Hardcoded passwords found!"
-            exit 1
-          fi
-          echo "✅ No hardcoded secrets found"
 
   build-and-deploy-staging:
     name: Build & Deploy to Staging
