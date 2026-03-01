@@ -21,22 +21,22 @@ export default function Home() {
   const [results, setResults] = useState<AnalysisResult | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
 
-  const checkBackendHealth = async () => {
-    try {
-      const health = await getHealthStatus();
-      if (health) {
-        setBackendStatus('connected');
-      } else {
-        setBackendStatus('disconnected');
-      }
-    } catch {
-      setBackendStatus('disconnected');
-    }
-  };
-
   useEffect(() => {
     // Check backend health on mount
-    checkBackendHealth();
+    const initBackend = async () => {
+      try {
+        const health = await getHealthStatus();
+        if (health) {
+          setBackendStatus('connected');
+        } else {
+          setBackendStatus('disconnected');
+        }
+      } catch {
+        setBackendStatus('disconnected');
+      }
+    };
+    
+    initBackend();
 
     // Initialize WebSocket connection
     const ws = new WebSocketClient(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws');
