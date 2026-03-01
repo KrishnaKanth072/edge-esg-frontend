@@ -32,7 +32,6 @@ interface InvestmentCalculatorProps {
 
 export default function InvestmentCalculator({ 
   currentPrice, 
-  symbol, 
   projections,
   historicalReturns 
 }: InvestmentCalculatorProps) {
@@ -209,7 +208,7 @@ export default function InvestmentCalculator({
                 
                 <div className="space-y-2 text-sm bg-purple-50 rounded-lg p-3">
                   <div className="flex justify-between">
-                    <span className="text-gray-600">Today's Investment:</span>
+                    <span className="text-gray-600">Today&apos;s Investment:</span>
                     <span className="font-bold text-gray-800">₹{investmentAmount.toFixed(0)}</span>
                   </div>
                   <div className="flex justify-between">

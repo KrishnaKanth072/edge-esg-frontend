@@ -354,8 +354,8 @@ export default function Home() {
                 <InvestmentCalculator
                   currentPrice={results.tradingSignal.currentPrice}
                   symbol={results.tradingSignal.symbol}
-                  projections={(results as any).investment_projections || []}
-                  historicalReturns={(results as any).historical_returns}
+                  projections={results.investment_projections || []}
+                  historicalReturns={results.historical_returns}
                 />
               </div>
             )}
