@@ -1,0 +1,323 @@
+EDGE ESG FRONTEND - GITHUB AUTOMATION GUIDE
+===========================================
+
+All GitHub workflows and automation rules from backend are now applied to frontend!
+
+
+AUTOMATED WORKFLOWS
+-------------------
+
+1. AUTO-FIX VULNERABILITIES (.github/workflows/auto-fix-vulnerabilities.yml)
+   ✅ Runs: Every Monday at 9 AM UTC + Manual trigger + On package.json changes
+   ✅ What it does:
+      - Scans for security vulnerabilities with npm audit
+      - Automatically fixes vulnerabilities with npm audit fix
+      - Tests build to ensure nothing broke
+      - Creates PR with fixes for your review
+      - Assigns to @krishnakanth072
+   ✅ Auto-merge: Safe patch updates are auto-merged after approval
+
+2. AUTO-MERGE DEPENDABOT (.github/workflows/auto-merge-dependabot.yml)
+   ✅ Runs: On every Dependabot PR
+   ✅ What it does:
+      - Security updates: Auto-merge immediately
+      - Patch updates (x.y.Z): Auto-merge
+      - Minor updates (x.Y.z): Auto-merge
+      - Major updates (X.y.z): Requires manual review
+   ✅ Saves time: No manual approval needed for safe updates
+
+3. REQUIRE ADMIN APPROVAL (.github/workflows/require-approval.yml)
+   ✅ Runs: On every PR
+   ✅ What it does:
+      - PRs from @krishnakanth072: Auto-approved
+      - PRs from others: Requires @krishnakanth072 approval
+      - Blocks merge until approved
+   ✅ Security: Only admin can approve changes
+
+4. PR CHECKS (.github/workflows/pr-checks.yml)
+   ✅ Runs: On every PR to main/master
+   ✅ What it does:
+      - Lint: Runs ESLint
+      - Type Check: Validates TypeScript
+      - Build: Tests production build
+      - Security: Scans for hardcoded secrets
+      - Bundle Size: Checks build size
+   ✅ Quality: Ensures code quality before merge
+
+5. SECURITY SCAN (.github/workflows/security-scan.yml)
+   ✅ Runs: Daily at 2 AM UTC + On push to main/master
+   ✅ What it does:
+      - NPM Audit: Checks for vulnerabilities
+      - Dependency Check: Finds outdated packages
+      - Code Scan: Looks for sensitive data
+      - Trivy Scan: Filesystem vulnerability scan
+   ✅ Protection: Continuous security monitoring
+
+6. PRODUCTION DEPLOY (.github/workflows/deploy.yml)
+   ✅ Runs: On push to main/master + Manual trigger
+   ✅ What it does:
+      - Installs dependencies
+      - Runs linter
+      - Type checks TypeScript
+      - Security audit
+      - Builds for production
+      - Shows deployment summary
+   ✅ Ready: Vercel auto-deploys from this
+
+7. DEPENDENCY CHECK (.github/workflows/dependency-check.yml)
+   ✅ Runs: Daily at midnight
+   ✅ What it does:
+      - Runs npm audit
+      - Checks for outdated packages
+   ✅ Awareness: Stay informed about updates
+
+
+DEPENDABOT CONFIGURATION
+-------------------------
+
+File: .github/dependabot.yml
+
+✅ NPM Dependencies:
+   - Checks: Daily at 9 AM
+   - Max PRs: 15 open at once
+   - Reviewer: @krishnakanth072
+   - Labels: dependencies, npm
+   - Groups: Security, Patch, Minor updates
+   - Ignores: Major updates for React, Next.js
+
+✅ GitHub Actions:
+   - Checks: Weekly on Monday at 9 AM
+   - Max PRs: 5 open at once
+   - Reviewer: @krishnakanth072
+   - Labels: dependencies, github-actions
+
+
+AUTOMATION FEATURES
+-------------------
+
+✅ DAILY SECURITY CHECKS
+   - Vulnerability scanning
+   - Dependency updates
+   - Outdated package detection
+
+✅ WEEKLY MAINTENANCE
+   - Auto-fix vulnerabilities (Monday 9 AM)
+   - GitHub Actions updates (Monday 9 AM)
+
+✅ AUTOMATIC MERGING
+   - Security patches: Immediate
+   - Patch updates: Automatic
+   - Minor updates: Automatic
+   - Major updates: Manual review required
+
+✅ QUALITY GATES
+   - Lint checks on every PR
+   - Type checking on every PR
+   - Build verification on every PR
+   - Security scanning on every PR
+
+✅ ADMIN CONTROLS
+   - Only @krishnakanth072 can approve PRs
+   - Admin PRs are auto-approved
+   - All changes require admin review
+
+
+HOW IT WORKS
+------------
+
+SCENARIO 1: Security Vulnerability Found
+   1. Dependabot detects vulnerability
+   2. Creates PR with fix
+   3. Auto-merge workflow approves it
+   4. PR is merged automatically
+   5. Deploy workflow builds and deploys
+   6. You get notification
+
+SCENARIO 2: Weekly Vulnerability Scan
+   1. Monday 9 AM: Auto-fix workflow runs
+   2. Scans for vulnerabilities
+   3. Applies fixes automatically
+   4. Creates PR for review
+   5. Assigns to you
+   6. You review and merge
+
+SCENARIO 3: Someone Creates PR
+   1. Developer creates PR
+   2. PR checks run (lint, type, build, security)
+   3. Require-approval workflow blocks merge
+   4. Waits for @krishnakanth072 approval
+   5. After approval, PR can be merged
+
+SCENARIO 4: You Create PR
+   1. You create PR
+   2. PR checks run
+   3. Require-approval auto-approves (you're admin)
+   4. You can merge immediately
+
+
+GITHUB SECRETS NEEDED
+---------------------
+
+For production deployment, add these secrets in GitHub:
+Settings → Secrets and variables → Actions → New repository secret
+
+Required secrets:
+- NEXT_PUBLIC_API_URL
+- NEXT_PUBLIC_WS_URL
+- NEXT_PUBLIC_KEYCLOAK_URL
+- NEXT_PUBLIC_KEYCLOAK_REALM
+- NEXT_PUBLIC_KEYCLOAK_CLIENT_ID
+
+
+MONITORING
+----------
+
+View workflow runs:
+https://github.com/YOUR_USERNAME/edge-esg-frontend/actions
+
+Check security alerts:
+https://github.com/YOUR_USERNAME/edge-esg-frontend/security
+
+View Dependabot PRs:
+https://github.com/YOUR_USERNAME/edge-esg-frontend/pulls
+
+
+MANUAL TRIGGERS
+---------------
+
+You can manually trigger workflows:
+
+1. Go to: Actions tab
+2. Select workflow (e.g., "Auto-Fix Security Vulnerabilities")
+3. Click "Run workflow"
+4. Select branch
+5. Click "Run workflow" button
+
+
+COST
+----
+
+✅ GitHub Actions: FREE (2,000 minutes/month for public repos)
+✅ Dependabot: FREE
+✅ Security Scanning: FREE
+✅ All automation: $0/month! 🎉
+
+
+COMPARISON WITH BACKEND
+-----------------------
+
+BACKEND (Go):
+✅ Auto-fix vulnerabilities (govulncheck)
+✅ Auto-merge Dependabot
+✅ Require admin approval
+✅ PR checks (lint, test, build, security)
+✅ Security scanning (Trivy, Gosec)
+✅ Dependabot (gomod, docker, github-actions)
+✅ Go version management
+
+FRONTEND (Node.js):
+✅ Auto-fix vulnerabilities (npm audit)
+✅ Auto-merge Dependabot
+✅ Require admin approval
+✅ PR checks (lint, type, build, security)
+✅ Security scanning (Trivy, npm audit)
+✅ Dependabot (npm, github-actions)
+✅ Bundle size checking
+
+RESULT: 100% FEATURE PARITY! 🎉
+
+
+BENEFITS
+--------
+
+✅ SECURITY
+   - Automatic vulnerability fixes
+   - Daily security scans
+   - No hardcoded secrets
+   - Continuous monitoring
+
+✅ QUALITY
+   - Lint checks on every PR
+   - Type checking
+   - Build verification
+   - Bundle size monitoring
+
+✅ AUTOMATION
+   - Auto-merge safe updates
+   - Auto-fix vulnerabilities
+   - Auto-deploy to production
+   - Zero manual work for routine tasks
+
+✅ CONTROL
+   - Admin approval required
+   - Manual review for major updates
+   - Full audit trail
+   - Notifications for all changes
+
+✅ TIME SAVING
+   - No manual dependency updates
+   - No manual security checks
+   - No manual PR reviews for safe changes
+   - Focus on features, not maintenance
+
+
+NEXT STEPS
+----------
+
+1. Push to GitHub:
+   git remote add origin https://github.com/YOUR_USERNAME/edge-esg-frontend.git
+   git branch -M main
+   git push -u origin main
+
+2. Enable Dependabot:
+   - Go to: Settings → Security → Dependabot
+   - Enable "Dependabot alerts"
+   - Enable "Dependabot security updates"
+
+3. Add GitHub Secrets:
+   - Go to: Settings → Secrets and variables → Actions
+   - Add all required secrets (see above)
+
+4. Test workflows:
+   - Go to: Actions tab
+   - Manually trigger "Auto-Fix Security Vulnerabilities"
+   - Check that it runs successfully
+
+5. Monitor:
+   - Check Actions tab daily
+   - Review Dependabot PRs
+   - Approve and merge safe updates
+
+
+TROUBLESHOOTING
+---------------
+
+Workflow failed?
+   - Check Actions tab for error logs
+   - Click on failed workflow
+   - Review error messages
+   - Fix and push again
+
+Dependabot not creating PRs?
+   - Check Settings → Security → Dependabot
+   - Ensure it's enabled
+   - Check .github/dependabot.yml syntax
+
+Auto-merge not working?
+   - Check PR labels
+   - Verify Dependabot created the PR
+   - Check workflow permissions
+
+Need help?
+   - Check workflow logs in Actions tab
+   - Review this guide
+   - Check GitHub documentation
+
+
+DOCUMENTATION
+-------------
+
+- GitHub Actions: https://docs.github.com/actions
+- Dependabot: https://docs.github.com/code-security/dependabot
+- Security: https://docs.github.com/code-security
+- Workflows: .github/workflows/*.yml
