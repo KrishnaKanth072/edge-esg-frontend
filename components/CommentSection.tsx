@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { supabase, Comment } from '@/lib/supabase';
 import AuthModal from './AuthModal';
@@ -16,7 +16,7 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [showAuth, setShowAuth] = useState(false);
 
-  const loadComments = async () => {
+  const loadComments = useCallback(async () => {
     const { data, error } = await supabase
       .from('comments')
       .select(`
@@ -30,7 +30,7 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
     if (!error && data) {
       setComments(data);
     }
-  };
+  }, [companyName]);
 
   useEffect(() => {
     // Check if user is logged in
@@ -67,7 +67,7 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
       authListener.subscription.unsubscribe();
       channel.unsubscribe();
     };
-  }, [companyName]);
+  }, [companyName, loadComments]);
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();

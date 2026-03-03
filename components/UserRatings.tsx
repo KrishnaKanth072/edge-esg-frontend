@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { supabase, UserRating } from '@/lib/supabase';
 import AuthModal from './AuthModal';
@@ -23,7 +23,7 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const loadRatings = async () => {
+  const loadRatings = useCallback(async () => {
     const { data, error } = await supabase
       .from('user_ratings')
       .select(`
@@ -37,9 +37,9 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
     if (!error && data) {
       setRatings(data);
     }
-  };
+  }, [companyName]);
 
-  const loadUserRating = async (userId: string) => {
+  const loadUserRating = useCallback(async (userId: string) => {
     const { data } = await supabase
       .from('user_ratings')
       .select('*')
@@ -55,7 +55,7 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
       setGovernance(data.governance);
       setComment(data.comment || '');
     }
-  };
+  }, [companyName]);
 
   useEffect(() => {
     // Check if user is logged in
@@ -80,7 +80,7 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
     return () => {
       authListener.subscription.unsubscribe();
     };
-  }, [companyName]);
+  }, [companyName, loadRatings, loadUserRating]);
 
   const calculateOverallScore = () => {
     return ((environmental + social + governance) / 3).toFixed(1);
