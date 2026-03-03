@@ -74,10 +74,13 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
       }
     });
 
-    // Load all ratings
-    loadRatings();
+    // Load all ratings asynchronously to avoid cascading renders
+    const timer = setTimeout(() => {
+      loadRatings();
+    }, 0);
 
     return () => {
+      clearTimeout(timer);
       authListener.subscription.unsubscribe();
     };
   }, [companyName, loadRatings, loadUserRating]);

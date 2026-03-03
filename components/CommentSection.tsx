@@ -43,8 +43,10 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
       setUser(session?.user ?? null);
     });
 
-    // Load comments
-    loadComments();
+    // Load comments asynchronously to avoid cascading renders
+    const timer = setTimeout(() => {
+      loadComments();
+    }, 0);
 
     // Subscribe to real-time comment updates
     const channel = supabase
@@ -64,6 +66,7 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
       .subscribe();
 
     return () => {
+      clearTimeout(timer);
       authListener.subscription.unsubscribe();
       channel.unsubscribe();
     };
