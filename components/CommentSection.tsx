@@ -231,7 +231,7 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
                     <span className="text-xs text-gray-500">
                       {new Date(comment.created_at).toLocaleDateString()}
                     </span>
-                    {comment.profile?.reputation > 0 && (
+                    {comment.profile?.reputation && comment.profile.reputation > 0 && (
                       <span className="text-xs bg-yellow-500/20 text-yellow-400 px-2 py-0.5 rounded">
                         ⭐ {comment.profile.reputation}
                       </span>
