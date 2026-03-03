@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { supabase, UserRating } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, UserRating } from '@/lib/supabase';
 import AuthModal from './AuthModal';
 
 interface UserRatingsProps {
@@ -22,6 +22,20 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   const [governance, setGovernance] = useState(5);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
+
+  // Check if Supabase is configured
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="bg-gradient-to-br from-purple-900/50 to-black border-2 border-purple-500 rounded-2xl p-6">
+        <h3 className="text-2xl font-bold text-white mb-4">
+          ⭐ Community ESG Ratings
+        </h3>
+        <p className="text-gray-400 text-center py-8">
+          Community ratings will be available soon. Configure Supabase to enable user ratings.
+        </p>
+      </div>
+    );
+  }
 
   const loadRatings = useCallback(async () => {
     const { data, error } = await supabase

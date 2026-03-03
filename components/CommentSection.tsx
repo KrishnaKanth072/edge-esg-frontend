@@ -2,7 +2,7 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { supabase, Comment } from '@/lib/supabase';
+import { supabase, isSupabaseConfigured, Comment } from '@/lib/supabase';
 import AuthModal from './AuthModal';
 
 interface CommentSectionProps {
@@ -15,6 +15,20 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+
+  // Check if Supabase is configured
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="bg-gradient-to-br from-gray-900 to-black border-2 border-blue-500 rounded-2xl p-6">
+        <h3 className="text-2xl font-bold text-white mb-4">
+          💬 Community Discussion
+        </h3>
+        <p className="text-gray-400 text-center py-8">
+          Community features will be available soon. Configure Supabase to enable discussions.
+        </p>
+      </div>
+    );
+  }
 
   const loadComments = useCallback(async () => {
     const { data, error } = await supabase
