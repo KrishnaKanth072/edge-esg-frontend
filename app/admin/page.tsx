@@ -40,58 +40,72 @@ export default function AdminDashboard() {
     }
   }, []);
 
-  const checkAdminAccess = useCallback(async () => {
-    // Check if Supabase is configured
-    if (!isSupabaseConfigured()) {
-      setError('Supabase not configured. Add environment variables to Vercel.');
-      setLoading(false);
-      return;
-    }
+  useEffect(() => {
+    let mounted = true;
 
-    const { data: { user } } = await supabase.auth.getUser();
-    
-    if (!user) {
-      setError('Please sign in first');
-      setLoading(false);
-      return;
-    }
-
-    setUser(user);
-
-    try {
-      const { data: profile, error: profileError } = await supabase
-        .from('profiles')
-        .select('role')
-        .eq('id', user.id)
-        .single();
-
-      if (profileError) {
-        if (profileError.code === '42703') {
-          setError('Admin system not set up. Run supabase-admin-schema.sql first.');
-        } else {
-          setError(`Database error: ${profileError.message}`);
+    const init = async () => {
+      // Check if Supabase is configured
+      if (!isSupabaseConfigured()) {
+        if (mounted) {
+          setError('Supabase not configured. Add environment variables to Vercel.');
+          setLoading(false);
         }
-        setLoading(false);
         return;
       }
 
-      if (profile?.role === 'admin' || profile?.role === 'moderator') {
-        setIsAdmin(true);
-        loadStats();
-      } else {
-        setError(`Access denied. Your role: ${profile?.role || 'user'}. Need: admin or moderator.`);
+      const { data: { user } } = await supabase.auth.getUser();
+      
+      if (!user) {
+        if (mounted) {
+          setError('Please sign in first');
+          setLoading(false);
+        }
+        return;
       }
-    } catch (error) {
-      console.error('Error checking admin access:', error);
-      setError('Error checking admin access');
-    }
-    
-    setLoading(false);
-  }, [loadStats]);
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, [checkAdminAccess]);
+      if (mounted) setUser(user);
+
+      try {
+        const { data: profile, error: profileError } = await supabase
+          .from('profiles')
+          .select('role')
+          .eq('id', user.id)
+          .single();
+
+        if (!mounted) return;
+
+        if (profileError) {
+          if (profileError.code === '42703') {
+            setError('Admin system not set up. Run supabase-admin-schema.sql first.');
+          } else {
+            setError(`Database error: ${profileError.message}`);
+          }
+          setLoading(false);
+          return;
+        }
+
+        if (profile?.role === 'admin' || profile?.role === 'moderator') {
+          setIsAdmin(true);
+          await loadStats();
+        } else {
+          setError(`Access denied. Your role: ${profile?.role || 'user'}. Need: admin or moderator.`);
+        }
+      } catch (error) {
+        if (mounted) {
+          console.error('Error checking admin access:', error);
+          setError('Error checking admin access');
+        }
+      }
+      
+      if (mounted) setLoading(false);
+    };
+
+    init();
+
+    return () => {
+      mounted = false;
+    };
+  }, [loadStats]);
 
   if (loading) {
     return (
