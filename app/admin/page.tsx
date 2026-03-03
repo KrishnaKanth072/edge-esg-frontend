@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { supabase, isSupabaseConfigured } from '@/lib/supabase';
 import { useRouter } from 'next/navigation';
 
@@ -8,7 +8,7 @@ export default function AdminDashboard() {
   const router = useRouter();
   const [loading, setLoading] = useState(true);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [error, setError] = useState('');
   const [stats, setStats] = useState({
     totalUsers: 0,
@@ -18,11 +18,7 @@ export default function AdminDashboard() {
     pendingModeration: 0,
   });
 
-  useEffect(() => {
-    checkAdminAccess();
-  }, []);
-
-  const checkAdminAccess = async () => {
+  const checkAdminAccess = useCallback(async () => {
     // Check if Supabase is configured
     if (!isSupabaseConfigured()) {
       setError('Supabase not configured. Add environment variables to Vercel.');
@@ -63,12 +59,17 @@ export default function AdminDashboard() {
       } else {
         setError(`Access denied. Your role: ${profile?.role || 'user'}. Need: admin or moderator.`);
       }
-    } catch (err) {
+    } catch (error) {
+      console.error('Error checking admin access:', error);
       setError('Error checking admin access');
     }
     
     setLoading(false);
-  };
+  }, []);
+
+  useEffect(() => {
+    checkAdminAccess();
+  }, [checkAdminAccess]);
 
   const loadStats = async () => {
     try {
