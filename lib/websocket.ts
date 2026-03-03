@@ -4,8 +4,8 @@ export class WebSocketClient {
   private ws: WebSocket | null = null;
   private url: string;
   private reconnectAttempts = 0;
-  private maxReconnectAttempts = 5;
-  private reconnectDelay = 1000;
+  private maxReconnectAttempts = 3;
+  private reconnectDelay = 2000;
 
   constructor(url: string) {
     this.url = url;
@@ -50,6 +50,8 @@ export class WebSocketClient {
       setTimeout(() => {
         this.connect(onMessage, onError);
       }, this.reconnectDelay * this.reconnectAttempts);
+    } else {
+      console.log('WebSocket unavailable - using fallback mode');
     }
   }
 

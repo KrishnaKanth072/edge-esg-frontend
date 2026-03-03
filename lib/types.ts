@@ -42,6 +42,28 @@ export interface AnalysisResult {
   riskAssessment: RiskAssessment;
   auditTrail: AuditTrail;
   consensus: number;
+  investment_projections?: Array<{
+    period: string;
+    months: number;
+    start_date: string;
+    end_date: string;
+    current_price: number;
+    future_price: number;
+    return_amount: number;
+    return_pct: number;
+    is_positive: boolean;
+    based_on: string;
+  }>;
+  historical_returns?: Array<{
+    period: string;
+    start_date: string;
+    end_date: string;
+    start_price: number;
+    end_price: number;
+    return_amount: number;
+    return_pct: number;
+    is_positive: boolean;
+  }>;
 }
 
 // WebSocket message types

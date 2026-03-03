@@ -8,19 +8,25 @@ export async function analyzeCompany(company: string) {
         'Content-Type': 'application/json',
       },
       body: JSON.stringify({
-        company,
-        metrics: ['environmental', 'social', 'governance'],
+        company_name: company,
+        bank_id: '00000000-0000-0000-0000-000000000000',
+        mode: 'auto'
       }),
     });
 
     if (!response.ok) {
-      throw new Error(`API error: ${response.status}`);
+      const errorData: { message?: string; details?: string } = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.details || `API error: ${response.status}`;
+      throw new Error(errorMessage);
     }
 
     return await response.json();
   } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
     console.error('Failed to analyze company:', error);
-    throw error;
+    throw new Error('Failed to analyze company');
   }
 }
 
@@ -31,5 +37,34 @@ export async function getHealthStatus() {
   } catch (error) {
     console.error('Failed to get health status:', error);
     return null;
+  }
+}
+
+export async function analyzePortfolio(companies: string[], riskTolerance: number = 0.5) {
+  try {
+    const response = await fetch(`${API_URL}/api/v1/portfolio/compare`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({
+        companies: companies,
+        risk_tolerance: riskTolerance
+      }),
+    });
+
+    if (!response.ok) {
+      const errorData: { message?: string; details?: string } = await response.json().catch(() => ({}));
+      const errorMessage = errorData.message || errorData.details || `API error: ${response.status}`;
+      throw new Error(errorMessage);
+    }
+
+    return await response.json();
+  } catch (error) {
+    if (error instanceof Error) {
+      throw error;
+    }
+    console.error('Failed to analyze portfolio:', error);
+    throw new Error('Failed to analyze portfolio');
   }
 }
