@@ -13,6 +13,8 @@
     "setup": "git config core.hooksPath .githooks && echo Git hooks installed"
   },
   "dependencies": {
+    "@supabase/auth-helpers-nextjs": "^0.15.0",
+    "@supabase/supabase-js": "^2.98.0",
     "framer-motion": "^12.34.3",
     "keycloak-js": "^26.2.3",
     "lucide-react": "^0.575.0",

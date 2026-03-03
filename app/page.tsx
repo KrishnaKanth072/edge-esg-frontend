@@ -5,6 +5,10 @@ import { motion, AnimatePresence } from 'framer-motion';
 import AgentAvatar from '@/components/AgentAvatar';
 import QuantumGlobe from '@/components/QuantumGlobe';
 import GlassCard from '@/components/GlassCard';
+import PortfolioComparison from '@/components/PortfolioComparison';
+import InvestmentCalculator from '@/components/InvestmentCalculator';
+import CommentSection from '@/components/CommentSection';
+import UserRatings from '@/components/UserRatings';
 import { agents } from '@/lib/agents';
 import { Agent, AnalysisResult } from '@/lib/types';
 import { analyzeCompany, getHealthStatus } from '@/lib/api';
@@ -18,6 +22,7 @@ export default function Home() {
   const [agentStates, setAgentStates] = useState<Agent[]>(agents);
   const [consensus, setConsensus] = useState(0);
   const [quantumProgress, setQuantumProgress] = useState(0);
+  const [showPortfolio, setShowPortfolio] = useState(false);
   const [results, setResults] = useState<AnalysisResult | null>(null);
   const [backendStatus, setBackendStatus] = useState<'checking' | 'connected' | 'disconnected'>('checking');
 
@@ -38,7 +43,7 @@ export default function Home() {
     
     initBackend();
 
-    // Initialize WebSocket connection
+    // Initialize WebSocket connection (optional feature)
     const ws = new WebSocketClient(process.env.NEXT_PUBLIC_WS_URL || 'ws://localhost:8000/ws');
     ws.connect(
       (data) => {
@@ -59,7 +64,8 @@ export default function Home() {
         }
       },
       () => {
-        setBackendStatus('disconnected');
+        // WebSocket failed, but REST API might still work
+        // Don't change backend status here
       }
     );
 
@@ -69,91 +75,62 @@ export default function Home() {
   }, []);
 
   const handleAnalyze = async () => {
-    if (!company.trim()) return;
-    
-    setState('analyzing');
-    setAgentStates(agents.map(a => ({ ...a, status: 'idle', progress: 0 })));
-    setConsensus(82);
-    setQuantumProgress(0);
+      if (!company.trim()) return;
 
-    if (backendStatus === 'connected') {
+      if (backendStatus !== 'connected') {
+        alert('Backend not connected. Please wait...');
+        return;
+      }
+
+      setState('analyzing');
+      setAgentStates(agents.map(a => ({ ...a, status: 'analyzing', progress: 50 })));
+
       try {
-        // Call real backend API
-        await analyzeCompany(company);
-        
-        // WebSocket will handle real-time updates
-        // If WebSocket fails, fallback to simulation
-        setTimeout(() => {
-          if (state === 'analyzing') {
-            simulateAnalysis();
-          }
-        }, 2000);
-      } catch (error) {
-        console.error('API call failed, using simulation:', error);
-        simulateAnalysis();
+        const result = await analyzeCompany(company);
+
+        setResults({
+          company,
+          esgScore: {
+            overall: parseFloat(result.esg_score),
+            environmental: parseFloat(result.esg_score) * 0.9,
+            social: parseFloat(result.esg_score) * 1.1,
+            governance: parseFloat(result.esg_score)
+          },
+          tradingSignal: {
+            action: result.trading_signal.action,
+            symbol: result.trading_signal.symbol,
+            currentPrice: parseFloat(result.trading_signal.current_price?.replace('$', '') || '0'),
+            targetPrice: parseFloat(result.trading_signal.target_price?.replace('$', '') || '0'),
+            confidence: Math.round(result.trading_signal.confidence * 100),
+            expectedReturn: parseFloat(result.trading_signal.price_change?.replace('%', '') || '0')
+          },
+          riskAssessment: {
+            level: result.risk_action === 'REJECT' ? 'HIGH' : result.risk_action === 'REVIEW' ? 'MEDIUM' : 'LOW',
+            action: result.risk_action,
+            factors: result.risk_reasons || []
+          },
+          auditTrail: {
+            transactionHash: result.audit_hash,
+            blockchain: 'Polygon',
+            timestamp: result.timestamp || new Date().toISOString(),
+            verified: true
+          },
+          consensus: Math.round(result.trading_signal.confidence * 100),
+          investment_projections: result.investment_projections || [],
+          historical_returns: result.historical_returns || []
+        });
+
+        setAgentStates(agents.map(a => ({ ...a, status: 'complete', progress: 100 })));
+        setState('results');
+
+      } catch (error: unknown) {
+        console.error('Analysis failed:', error);
+        const errorMessage = error instanceof Error ? error.message : 'Failed to analyze. Please try again.';
+        alert(errorMessage);
+        setState('input');
+        setAgentStates(agents.map(a => ({ ...a, status: 'idle', progress: 0 })));
       }
-    } else {
-      // Use simulation when backend is not available
-      simulateAnalysis();
     }
-  };
-
-  const simulateAnalysis = () => {
-    let progress = 0;
-    const interval = setInterval(() => {
-      progress += 10;
-      
-      setAgentStates(prev => prev.map((agent, idx) => {
-        if (progress > idx * 10) {
-          return {
-            ...agent,
-            status: progress >= 100 ? 'complete' : 'analyzing',
-            progress: Math.min(progress - idx * 10, 100)
-          };
-        }
-        return agent;
-      }));
-
-      setConsensus(prev => Math.min(prev + 1.2, 94));
-      setQuantumProgress(prev => Math.min(prev + 12.5, 100));
-
-      if (progress >= 100) {
-        clearInterval(interval);
-        setTimeout(() => {
-          setResults({
-            company,
-            esgScore: {
-              overall: 4.2,
-              environmental: 3.8,
-              social: 4.5,
-              governance: 4.3
-            },
-            tradingSignal: {
-              action: 'BUY',
-              symbol: 'SUZLON.NS',
-              currentPrice: 285,
-              targetPrice: 312,
-              confidence: 85,
-              expectedReturn: 18
-            },
-            riskAssessment: {
-              level: 'HIGH',
-              action: 'REJECT',
-              factors: ['High debt ratio', 'Regulatory concerns', 'Market volatility']
-            },
-            auditTrail: {
-              transactionHash: '0xabc123def456...',
-              blockchain: 'Polygon',
-              timestamp: new Date().toISOString(),
-              verified: true
-            },
-            consensus: 94
-          });
-          setState('results');
-        }, 1000);
-      }
-    }, 800);
-  };
 
   return (
     <div className="min-h-screen flex items-center justify-center p-4">
@@ -206,14 +183,25 @@ export default function Home() {
                 className="w-full px-6 py-4 rounded-xl glass text-white placeholder-white/40 outline-none focus:ring-2 focus:ring-blue-500 mb-6"
               />
               
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleAnalyze}
-                className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all"
-              >
-                🚀 Analyze ESG + Trading Alpha
-              </motion.button>
+              <div className="space-y-3">
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={handleAnalyze}
+                  className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-blue-500 to-purple-600 text-white font-semibold text-lg hover:shadow-lg hover:shadow-blue-500/50 transition-all"
+                >
+                  🚀 Analyze ESG + Trading Alpha
+                </motion.button>
+                
+                <motion.button
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                  onClick={() => setShowPortfolio(true)}
+                  className="w-full px-8 py-4 rounded-xl bg-gradient-to-r from-green-500 to-blue-500 text-white font-semibold text-lg hover:shadow-lg hover:shadow-green-500/50 transition-all"
+                >
+                  📊 Compare Portfolio (2-10 Companies)
+                </motion.button>
+              </div>
             </div>
           </motion.div>
         )}
@@ -362,6 +350,28 @@ export default function Home() {
               </GlassCard>
             </div>
 
+            {/* Investment Calculator */}
+            {results.tradingSignal && (
+              <div className="mt-8">
+                <InvestmentCalculator
+                  currentPrice={results.tradingSignal.currentPrice}
+                  symbol={results.tradingSignal.symbol}
+                  projections={results.investment_projections || []}
+                  historicalReturns={results.historical_returns}
+                />
+              </div>
+            )}
+
+            {/* Community Comments - Feature Bloomberg doesn't have! */}
+            <div className="mt-8">
+              <CommentSection companyName={results.company} />
+            </div>
+
+            {/* User Ratings - Crowdsourced ESG scores! */}
+            <div className="mt-8">
+              <UserRatings companyName={results.company} />
+            </div>
+
             <div className="text-center mt-8">
               <motion.button
                 whileHover={{ scale: 1.05 }}
@@ -379,6 +389,10 @@ export default function Home() {
           </motion.div>
         )}
       </AnimatePresence>
+      
+      {showPortfolio && (
+        <PortfolioComparison onClose={() => setShowPortfolio(false)} />
+      )}
     </div>
   );
 }
