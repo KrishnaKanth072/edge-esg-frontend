@@ -13,7 +13,7 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   const [ratings, setRatings] = useState<UserRating[]>([]);
   const [userRating, setUserRating] = useState<UserRating | null>(null);
   const [showRatingForm, setShowRatingForm] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [showAuth, setShowAuth] = useState(false);
   
   // Form state
@@ -22,31 +22,6 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   const [governance, setGovernance] = useState(5);
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
-
-  useEffect(() => {
-    // Check if user is logged in
-    supabase.auth.getUser().then(({ data }) => {
-      setUser(data.user);
-      if (data.user) {
-        loadUserRating(data.user.id);
-      }
-    });
-
-    // Subscribe to auth changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
-      setUser(session?.user ?? null);
-      if (session?.user) {
-        loadUserRating(session.user.id);
-      }
-    });
-
-    // Load all ratings
-    loadRatings();
-
-    return () => {
-      authListener.subscription.unsubscribe();
-    };
-  }, [companyName]);
 
   const loadRatings = async () => {
     const { data, error } = await supabase
@@ -81,6 +56,31 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
       setComment(data.comment || '');
     }
   };
+
+  useEffect(() => {
+    // Check if user is logged in
+    supabase.auth.getUser().then(({ data }) => {
+      setUser(data.user);
+      if (data.user) {
+        loadUserRating(data.user.id);
+      }
+    });
+
+    // Subscribe to auth changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        loadUserRating(session.user.id);
+      }
+    });
+
+    // Load all ratings
+    loadRatings();
+
+    return () => {
+      authListener.subscription.unsubscribe();
+    };
+  }, [companyName]);
 
   const calculateOverallScore = () => {
     return ((environmental + social + governance) / 3).toFixed(1);
@@ -395,7 +395,7 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
 
                   {/* Comment */}
                   {rating.comment && (
-                    <p className="text-sm text-gray-300 italic">"{rating.comment}"</p>
+                    <p className="text-sm text-gray-300 italic">&quot;{rating.comment}&quot;</p>
                   )}
                 </div>
               </div>

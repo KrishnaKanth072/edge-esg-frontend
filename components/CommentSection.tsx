@@ -13,8 +13,24 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
   const [comments, setComments] = useState<Comment[]>([]);
   const [newComment, setNewComment] = useState('');
   const [loading, setLoading] = useState(false);
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [showAuth, setShowAuth] = useState(false);
+
+  const loadComments = async () => {
+    const { data, error } = await supabase
+      .from('comments')
+      .select(`
+        *,
+        profile:profiles(*)
+      `)
+      .eq('company_name', companyName)
+      .is('deleted_at', null)
+      .order('created_at', { ascending: false });
+
+    if (!error && data) {
+      setComments(data);
+    }
+  };
 
   useEffect(() => {
     // Check if user is logged in
@@ -52,22 +68,6 @@ export default function CommentSection({ companyName }: CommentSectionProps) {
       channel.unsubscribe();
     };
   }, [companyName]);
-
-  const loadComments = async () => {
-    const { data, error } = await supabase
-      .from('comments')
-      .select(`
-        *,
-        profile:profiles(*)
-      `)
-      .eq('company_name', companyName)
-      .is('deleted_at', null)
-      .order('created_at', { ascending: false });
-
-    if (!error && data) {
-      setComments(data);
-    }
-  };
 
   const handleSubmitComment = async (e: React.FormEvent) => {
     e.preventDefault();
