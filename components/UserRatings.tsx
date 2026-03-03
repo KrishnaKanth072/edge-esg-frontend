@@ -23,21 +23,9 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   const [comment, setComment] = useState('');
   const [loading, setLoading] = useState(false);
 
-  // Check if Supabase is configured
-  if (!isSupabaseConfigured()) {
-    return (
-      <div className="bg-gradient-to-br from-purple-900/50 to-black border-2 border-purple-500 rounded-2xl p-6">
-        <h3 className="text-2xl font-bold text-white mb-4">
-          ⭐ Community ESG Ratings
-        </h3>
-        <p className="text-gray-400 text-center py-8">
-          Community ratings will be available soon. Configure Supabase to enable user ratings.
-        </p>
-      </div>
-    );
-  }
-
   const loadRatings = useCallback(async () => {
+    if (!isSupabaseConfigured()) return;
+
     const { data, error } = await supabase
       .from('user_ratings')
       .select(`
@@ -54,6 +42,8 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   }, [companyName]);
 
   const loadUserRating = useCallback(async (userId: string) => {
+    if (!isSupabaseConfigured()) return;
+
     const { data } = await supabase
       .from('user_ratings')
       .select('*')
@@ -72,6 +62,8 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
   }, [companyName]);
 
   useEffect(() => {
+    if (!isSupabaseConfigured()) return;
+
     // Check if user is logged in
     supabase.auth.getUser().then(({ data }) => {
       setUser(data.user);
@@ -98,6 +90,20 @@ export default function UserRatings({ companyName }: UserRatingsProps) {
       authListener.subscription.unsubscribe();
     };
   }, [companyName, loadRatings, loadUserRating]);
+
+  // Check if Supabase is configured - AFTER all hooks
+  if (!isSupabaseConfigured()) {
+    return (
+      <div className="bg-gradient-to-br from-purple-900/50 to-black border-2 border-purple-500 rounded-2xl p-6">
+        <h3 className="text-2xl font-bold text-white mb-4">
+          ⭐ Community ESG Ratings
+        </h3>
+        <p className="text-gray-400 text-center py-8">
+          Community ratings will be available soon. Configure Supabase to enable user ratings.
+        </p>
+      </div>
+    );
+  }
 
   const calculateOverallScore = () => {
     return ((environmental + social + governance) / 3).toFixed(1);
