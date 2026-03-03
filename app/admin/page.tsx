@@ -18,6 +18,28 @@ export default function AdminDashboard() {
     pendingModeration: 0,
   });
 
+  const loadStats = useCallback(async () => {
+    try {
+      const [users, comments, ratings, reports, moderation] = await Promise.all([
+        supabase.from('profiles').select('id', { count: 'exact', head: true }),
+        supabase.from('comments').select('id', { count: 'exact', head: true }).is('deleted_at', null),
+        supabase.from('user_ratings').select('id', { count: 'exact', head: true }).is('deleted_at', null),
+        supabase.from('reports').select('id', { count: 'exact', head: true }).is('deleted_at', null),
+        supabase.from('moderation_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
+      ]);
+
+      setStats({
+        totalUsers: users.count || 0,
+        totalComments: comments.count || 0,
+        totalRatings: ratings.count || 0,
+        totalReports: reports.count || 0,
+        pendingModeration: moderation.count || 0,
+      });
+    } catch (err) {
+      console.error('Error loading stats:', err);
+    }
+  }, []);
+
   const checkAdminAccess = useCallback(async () => {
     // Check if Supabase is configured
     if (!isSupabaseConfigured()) {
@@ -65,33 +87,11 @@ export default function AdminDashboard() {
     }
     
     setLoading(false);
-  }, []);
+  }, [loadStats]);
 
   useEffect(() => {
     checkAdminAccess();
   }, [checkAdminAccess]);
-
-  const loadStats = async () => {
-    try {
-      const [users, comments, ratings, reports, moderation] = await Promise.all([
-        supabase.from('profiles').select('id', { count: 'exact', head: true }),
-        supabase.from('comments').select('id', { count: 'exact', head: true }).is('deleted_at', null),
-        supabase.from('user_ratings').select('id', { count: 'exact', head: true }).is('deleted_at', null),
-        supabase.from('reports').select('id', { count: 'exact', head: true }).is('deleted_at', null),
-        supabase.from('moderation_queue').select('id', { count: 'exact', head: true }).eq('status', 'pending'),
-      ]);
-
-      setStats({
-        totalUsers: users.count || 0,
-        totalComments: comments.count || 0,
-        totalRatings: ratings.count || 0,
-        totalReports: reports.count || 0,
-        pendingModeration: moderation.count || 0,
-      });
-    } catch (err) {
-      console.error('Error loading stats:', err);
-    }
-  };
 
   if (loading) {
     return (

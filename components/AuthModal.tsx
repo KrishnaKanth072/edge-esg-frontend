@@ -50,7 +50,7 @@ export default function AuthModal({ isOpen, onClose, onSuccess }: AuthModalProps
           if (profileError) throw profileError;
         }
 
-        alert('Check your email for verification link!');
+        alert('Account created successfully! You can now sign in.');
       } else {
         const { error } = await supabase.auth.signInWithPassword({
           email,
