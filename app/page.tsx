@@ -8,6 +8,7 @@ import GlassCard from '@/components/GlassCard';
 import PortfolioComparison from '@/components/PortfolioComparison';
 import InvestmentCalculator from '@/components/InvestmentCalculator';
 import CommentSection from '@/components/CommentSection';
+import UserRatings from '@/components/UserRatings';
 import { agents } from '@/lib/agents';
 import { Agent, AnalysisResult } from '@/lib/types';
 import { analyzeCompany, getHealthStatus } from '@/lib/api';
@@ -364,6 +365,11 @@ export default function Home() {
             {/* Community Comments - Feature Bloomberg doesn't have! */}
             <div className="mt-8">
               <CommentSection companyName={results.company} />
+            </div>
+
+            {/* User Ratings - Crowdsourced ESG scores! */}
+            <div className="mt-8">
+              <UserRatings companyName={results.company} />
             </div>
 
             <div className="text-center mt-8">
