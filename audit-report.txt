@@ -1,0 +1,27 @@
+# npm audit report
+
+flatted  <=3.4.1
+Severity: high
+flatted vulnerable to unbounded recursion DoS in parse() revive phase - https://github.com/advisories/GHSA-25h7-pfq9-p65f
+Prototype Pollution via parse() in NodeJS flatted - https://github.com/advisories/GHSA-rf6f-7fwh-wjgh
+fix available via `npm audit fix`
+node_modules/flatted
+
+next  16.0.0-beta.0 - 16.1.6
+Severity: moderate
+Next.js: HTTP request smuggling in rewrites - https://github.com/advisories/GHSA-ggv3-7p47-pfv8
+Next.js: Unbounded next/image disk cache growth can exhaust storage - https://github.com/advisories/GHSA-3x4c-7xq6-9pq8
+Next.js: Unbounded postponed resume buffering can lead to DoS - https://github.com/advisories/GHSA-h27x-g6w4-24gq
+Next.js: null origin can bypass Server Actions CSRF checks - https://github.com/advisories/GHSA-mq59-m269-xvcx
+Next.js: null origin can bypass dev HMR websocket CSRF checks - https://github.com/advisories/GHSA-jcc7-9wpm-mj36
+fix available via `npm audit fix --force`
+Will install next@16.2.1, which is outside the stated dependency range
+node_modules/next
+
+2 vulnerabilities (1 moderate, 1 high)
+
+To address issues that do not require attention, run:
+  npm audit fix
+
+To address all issues, run:
+  npm audit fix --force
